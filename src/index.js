@@ -15,6 +15,6 @@ const DEFAULT_CONFIG = {
   ]
 }
 
-export const PolicyNotification = (cfg) => {
+export const PolicyNotificationModule = (cfg) => {
   return { ...DEFAULT_CONFIG, ...cfg };
 }
