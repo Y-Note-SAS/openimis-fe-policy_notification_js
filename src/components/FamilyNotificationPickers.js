@@ -26,53 +26,59 @@ class FamilyNotificationPickers extends Component {
 
     componentDidMount() {
         const { edited, fetchingfamilyNotification, familyNotification } = this.props
-        console.log(edited, familyNotification)
         if (!!edited && edited.uuid && !familyNotification) {
             this.props.fetchFamilyNotification(this.props.modulesManager, edited.uuid)
         } else {
             if (!!familyNotification) {
-                this.setState({approvalOfNotification: familyNotification.approvalOfNotification, languageOfNotification: familyNotification.languageOfNotification})
-            } else{
+                this.setState({ approvalOfNotification: familyNotification.approvalOfNotification, languageOfNotification: familyNotification.languageOfNotification })
+            } else {
                 this.setState(this.state)
             }
         }
     }
 
     onCheckedChange = () => {
-        this.setState({ 
+        this.setState({
             approvalOfNotification: !this.state.approvalOfNotification,
             languageOfNotification: this.state.languageOfNotification
         });
-    } 
+    }
 
     onLanguageChange = (v) => {
 
-        this.setState({ 
+        this.setState({
             approvalOfNotification: this.state.approvalOfNotification,
             languageOfNotification: v
         });
-    } 
+    }
 
     isChecked = () => {
         return this.state.approvalOfNotification;
     }
 
     getLanguageCode = () => {
-        
+
         return this.state.languageOfNotification;
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         const { updateAttribute, fetchedfamilyNotification, familyNotification } = this.props
         if (prevProps.fetchedfamilyNotification != fetchedfamilyNotification && familyNotification) {
+            console.log("if family notification ", familyNotification)
             this.setState({
                 approvalOfNotification: familyNotification.approvalOfNotification,
                 languageOfNotification: familyNotification.languageOfNotification
             })
-        } else {
-            if (prevState.approvalOfNotification != this.state.approvalOfNotification 
+        }
+         else {
+            console.log("else family notification ", familyNotification)
+            console.log('this.props ', this.props )
+            console.log('this.state ', this.state )
+            if (prevState.approvalOfNotification != this.state.approvalOfNotification
                 || prevState.languageOfNotification != this.state.languageOfNotification) {
-                updateAttribute('PolicyNotification', this.state)
+                const testvalue = {approvalOfNotification: false, languageOfNotification: 'en'}
+                // updateAttribute('familyNotification', testvalue)
+                // updateAttribute('PolicyNotification', this.state)
             }
         }
     }
@@ -84,11 +90,15 @@ class FamilyNotificationPickers extends Component {
             return null;
         }
     }
-    
-    render () {
-        const { intl,  classes, readOnly, updateAttribute, formData, edited, familyNotification } = this.props;
-        return (<Grid container className={classes.item}>
-                <Grid item xs={2} className={classes.item}>
+
+    render() {
+        const { intl, classes, readOnly, updateAttribute, formData, edited, familyNotification } = this.props;
+        console.log("quel", "bail", edited)
+
+        return (
+   
+        <Grid container className={classes.item}>
+            <Grid item xs={2} className={classes.item}>
                 <FormControlLabel
                     control={
                         <Checkbox
@@ -99,9 +109,9 @@ class FamilyNotificationPickers extends Component {
                         />}
                     label={formatMessage(intl, "policy_notification", "notificationApproval")}
                 />
-                </Grid>
-                <Grid item xs={2} className={classes.item}>
-                <PublishedComponent 
+            </Grid>
+            <Grid item xs={2} className={classes.item}>
+                <PublishedComponent
                     pubRef="core.LanguagePicker"
                     module="policy_notification"
                     value={this.getLanguageCode()}
@@ -112,8 +122,8 @@ class FamilyNotificationPickers extends Component {
                     withPlaceholder={false}
                     label={formatMessage(intl, "policy_notification", "NotificationLanguage.none")}
                 />
-                </Grid>
-                </Grid>
+            </Grid>
+        </Grid>
         );
     }
 }
@@ -128,6 +138,6 @@ const mapStateToProps = (state, props) => ({
 })
 
 export default withModulesManager(withHistory(injectIntl(withTheme(
-        connect(mapStateToProps, { fetchFamilyNotification, journalize })(
+    connect(mapStateToProps, { fetchFamilyNotification, journalize })(
         withStyles(styles)(FamilyNotificationPickers)
-)))));
+    )))));
