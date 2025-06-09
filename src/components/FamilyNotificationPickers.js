@@ -21,111 +21,98 @@ const styles = theme => ({
 class FamilyNotificationPickers extends Component {
     state = {
         approvalOfNotification: false,
-        languageOfNotification: null,
-        isInitialized: false
+        languageOfNotification: null
     }
 
     componentDidMount() {
-        const { edited, fetchingfamilyNotification, familyNotification } = this.props;
-
-        if ((!!edited && edited.uuid && !familyNotification || familyNotification==null)) {
-            this.props.fetchFamilyNotification(this.props.modulesManager, edited.uuid);
-        } else if (!!familyNotification && !this.state.isInitialized) {
-            this.setState({
-                approvalOfNotification: familyNotification.approvalOfNotification,
-                languageOfNotification: familyNotification.languageOfNotification,
-                isInitialized: true
-            });
+        const { edited, fetchingfamilyNotification, familyNotification } = this.props
+        if (!!edited && edited.uuid ) {
+            this.props.fetchFamilyNotification(this.props.modulesManager, edited.uuid)
+        } else {
+            if (!!familyNotification) {
+                this.setState({approvalOfNotification: familyNotification.approvalOfNotification, languageOfNotification: familyNotification.languageOfNotification})
+            } else{
+                this.setState(this.state)
+            }
         }
-    }
-
-    static getDerivedStateFromProps(nextProps, prevState) {
-        if (!prevState.isInitialized && nextProps.familyNotification) {
-            return {
-                approvalOfNotification: nextProps.familyNotification.approvalOfNotification,
-                languageOfNotification: nextProps.familyNotification.languageOfNotification,
-                isInitialized: true
-            };
-        }
-        return null;
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        // Empêche les rendus inutiles
-        return (
-            this.state.approvalOfNotification !== nextState.approvalOfNotification ||
-            this.state.languageOfNotification !== nextState.languageOfNotification ||
-            this.props.familyNotification !== nextProps.familyNotification ||
-            this.props.readOnly !== nextProps.readOnly
-        );
     }
 
     onCheckedChange = () => {
-        const newApproval = !this.state.approvalOfNotification;
-        this.setState({
-            approvalOfNotification: newApproval
-        }, () => {
-            this.updateParentComponent();
+        this.setState({ 
+            approvalOfNotification: !this.state.approvalOfNotification,
+            languageOfNotification: this.state.languageOfNotification
         });
-    }
+    } 
 
     onLanguageChange = (v) => {
-        this.setState({
-            languageOfNotification: v
-        }, () => {
-            this.updateParentComponent();
-        });
-    }
 
-    updateParentComponent = () => {
-        if (!this.props.readOnly && this.state.isInitialized) {
-            this.props.updateAttribute('PolicyNotification', {
-                approvalOfNotification: this.state.approvalOfNotification,
-                languageOfNotification: this.state.languageOfNotification
-            });
-        }
-    }
+        this.setState({ 
+            approvalOfNotification: this.state.approvalOfNotification,
+            languageOfNotification: v
+        });
+    } 
 
     isChecked = () => {
-        return this.state.approvalOfNotification || false;
+        return this.state.approvalOfNotification;
     }
 
     getLanguageCode = () => {
-        return this.state.languageOfNotification || 'en';
+        
+        return this.state.languageOfNotification;
     }
 
-    render() {
-        const { intl, classes, readOnly } = this.props;
-        
-        return (
-            <Grid container className={classes.item}>
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        const { updateAttribute, fetchedfamilyNotification, familyNotification } = this.props
+        if (prevProps.fetchedfamilyNotification != fetchedfamilyNotification && familyNotification) {
+            this.setState({
+                approvalOfNotification: familyNotification.approvalOfNotification,
+                languageOfNotification: familyNotification.languageOfNotification
+            })
+        } else {
+            if (this.props.readOnly == false && prevState.approvalOfNotification != this.state.approvalOfNotification 
+                || this.props.readOnly == false && prevState.languageOfNotification != this.state.languageOfNotification) {
+                updateAttribute('PolicyNotification', this.state)
+            }
+        }
+    }
+
+    selectedLanguage = () => {
+        if (!!formContribution && !!formContribution['PolicyNotification']) {
+            return formContribution['PolicyNotification']['languageOfNotification'];
+        } else {
+            return null;
+        }
+    }
+    
+    render () {
+        const { intl,  classes, readOnly, updateAttribute, formData, edited, familyNotification } = this.props;
+        return (<Grid container className={classes.item}>
                 <Grid item xs={2} className={classes.item}>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                color="primary"
-                                checked={this.isChecked()}
-                                disabled={readOnly}
-                                onChange={this.onCheckedChange}
-                            />
-                        }
-                        label={formatMessage(intl, "policy_notification", "notificationApproval")}
-                    />
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            color="primary"
+                            checked={this.isChecked()}
+                            disabled={readOnly}
+                            onChange={e => this.onCheckedChange()}
+                        />}
+                    label={formatMessage(intl, "policy_notification", "notificationApproval")}
+                />
                 </Grid>
                 <Grid item xs={2} className={classes.item}>
-                    <PublishedComponent
-                        pubRef="core.LanguagePicker"
-                        module="policy_notification"
-                        value={this.getLanguageCode()}
-                        readOnly={readOnly}
-                        withNull={true}
-                        nullLabel={"SMS Language"}
-                        onChange={this.onLanguageChange}
-                        withPlaceholder={false}
-                        label={formatMessage(intl, "policy_notification", "NotificationLanguage.none")}
-                    />
+                <PublishedComponent 
+                    pubRef="core.LanguagePicker"
+                    module="policy_notification"
+                    value={this.getLanguageCode()}
+                    readOnly={readOnly}
+                    withNull={true}
+                    nullLabel={"SMS Language"}
+                    onChange={v => this.onLanguageChange(v)}
+                    withPlaceholder={false}
+                    label={formatMessage(intl, "policy_notification", "NotificationLanguage.none")}
+                />
                 </Grid>
-            </Grid>
+                </Grid>
         );
     }
 }
@@ -137,21 +124,9 @@ const mapStateToProps = (state, props) => ({
     familyNotification: state.PolicyNotification.familyNotification,
     errorFamily: state.PolicyNotification.errorFamily,
     mutation: state.PolicyNotification.mutation,
-});
+})
 
-const mapDispatchToProps = dispatch => {
-    return bindActionCreators({ fetchFamilyNotification, journalize }, dispatch);
-};
-
-export default withModulesManager(
-    withHistory(
-        injectIntl(
-            withTheme(
-                connect(
-                    mapStateToProps,
-                    mapDispatchToProps
-                )(withStyles(styles)(FamilyNotificationPickers))
-            )
-        )
-    )
-);
+export default withModulesManager(withHistory(injectIntl(withTheme(
+        connect(mapStateToProps, { fetchFamilyNotification, journalize })(
+        withStyles(styles)(FamilyNotificationPickers)
+)))));
