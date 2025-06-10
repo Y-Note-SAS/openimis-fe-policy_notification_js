@@ -26,8 +26,7 @@ class FamilyNotificationPickers extends Component {
 
     componentDidMount() {
         const { edited, fetchingfamilyNotification, familyNotification } = this.props
-        console.log(edited, familyNotification)
-        if (!!edited && edited.uuid && !familyNotification) {
+        if (!!edited && edited.uuid ) {
             this.props.fetchFamilyNotification(this.props.modulesManager, edited.uuid)
         } else {
             if (!!familyNotification) {
@@ -70,8 +69,8 @@ class FamilyNotificationPickers extends Component {
                 languageOfNotification: familyNotification.languageOfNotification
             })
         } else {
-            if (prevState.approvalOfNotification != this.state.approvalOfNotification 
-                || prevState.languageOfNotification != this.state.languageOfNotification) {
+            if (this.props.readOnly == false && prevState.approvalOfNotification != this.state.approvalOfNotification 
+                || this.props.readOnly == false && prevState.languageOfNotification != this.state.languageOfNotification) {
                 updateAttribute('PolicyNotification', this.state)
             }
         }
